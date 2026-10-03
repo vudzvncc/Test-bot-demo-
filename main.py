@@ -1,3 +1,59 @@
+##############################################################
+#                                                                              #
+#                    ╔══════════════════════════════════════════════════════╗   #
+#                    ║  Made by deleteduserf0bd3b64                        ║   #
+#                    ║  Vui lòng ghi công lại tác giả gốc nếu bạn muốn    ║   #
+#                    ║  tái tạo lại đoạn mã này.                          ║   #
+#                    ║  Link server support: https://discord.gg/eCx2NwAPwA ║   #
+#                    ╚══════════════════════════════════════════════════════╝   #
+#                                                                              #
+##############################################################
+
+
+# Patch Gateway nhận dạng để hiển thị dưới dạng VR
+
+def patch_gateway_identify():
+    async def patched_identify(self):
+        version = getattr(self, 'version', 10)
+        intents_value = None
+        if hasattr(self, '_intents'):
+            intents_value = self._intents.value if hasattr(self._intents, 'value') else self._intents
+        elif hasattr(self, '_connection') and hasattr(self._connection, 'intents'):
+            intents_value = self._connection.intents.value if hasattr(self._connection.intents, 'value') else self._connection.intents
+        elif hasattr(self, 'intents'):
+            intents_value = self.intents.value if hasattr(self.intents, 'value') else self.intents
+        else:
+            intents_value = 0
+
+        payload = {
+            "op": self.IDENTIFY,
+            "d": {
+                "token": self.token,
+                "capabilities": 16383,
+                "properties": {
+                    "$os": "android",
+                    "$browser": "Discord VR",
+                    "$device": "Meta Quest 3",
+                },
+                "presence": {
+                    "status": "online",
+                    "activities": [],
+                    "afk": False,
+                    "since": None,
+                },
+                "compress": True,
+                "large_threshold": 250,
+                "v": version,
+                "intents": intents_value,
+            },
+        }
+        await self.send(json.dumps(payload))
+        self._identify_payload = payload["d"]
+
+    discord.gateway.DiscordWebSocket.identify = patched_identify
+    print("[PATCH] Gateway identify patched for VR Device.")
+
+patch_gateway_identify()
 import os
 import time
 import asyncio
